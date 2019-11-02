@@ -1,0 +1,81 @@
+# nhs pipers deployment
+
+---
+# mongo piper
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nhs-mongo-piper-deployment
+  labels:
+    app: nhs
+    tier: pipers
+    type: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nhs
+      tier: pipers
+      type: mongo
+  template:
+    metadata:
+      labels:
+        app: nhs
+        tier: pipers
+        type: mongo
+    spec:
+      containers:
+      - name: nhs-mongo-piper-container
+        image: pjmd-ubuntu.com/nhs_piper:v0.0.2
+        env:
+          - name: MONGO_HOST
+            value: mongo-0.mongo.default.svc.cluster.local:27017,mongo-1.mongo.default.svc.cluster.local:27017,mongo-2.mongo.default.svc.cluster.local:27017
+          - name: MONGO_REPLICASET
+            value: rs0
+          - name: SOLR_HOST
+            value: solr-svc
+          - name: KAFKA_HOST
+            value: kafka-svc
+        # Thes args are crazyness, start_piper.sh should get its args from env variables since
+        # the python piper read their are from env variables.
+        command: ["/app/start_piper.sh"]
+        args: ["mongo", "mongo-0.mongo.default.svc.cluster.local:27017,mongo-1.mongo.default.svc.cluster.local:27017,mongo-2.mongo.default.svc.cluster.local:27017", "rs0"]
+---
+# solr piper
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nhs-solr-piper-deployment
+  labels:
+    app: nhs
+    tier: pipers
+    type: solr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nhs
+      tier: pipers
+      type: solr
+  template:
+    metadata:
+      labels:
+        app: nhs
+        tier: pipers
+        type: solr
+    spec:
+      containers:
+      - name: nhs-solr-piper-container
+        image: pjmd-ubuntu.com/nhs_piper:v0.0.2
+        env:
+          - name: SOLR_HOST
+            value: solr-svc
+#          - name: SOLR_PORT
+#            value: 8993
+          - name: KAFKA_HOST
+            value: kafka-svc
+        command: ["/app/start_piper.sh"]
+        args: ["solr", "solr-svc"]
+

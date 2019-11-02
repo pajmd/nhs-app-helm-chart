@@ -1,0 +1,46 @@
+# nhs server deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nhs-server-deployment
+  labels:
+    app: nhsserver  
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nhsserver
+  template:
+    metadata:
+      labels:
+        app: nhsserver
+    spec:
+      containers:
+      - name: nhsserver-container
+        image: pjmd-ubuntu.com/nhs-server-app:v0.0.5
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+          - name: MONGO_HOST
+            value: mongo-0.mongo.default.svc.cluster.local,mongo-1.mongo.default.svc.cluster.local,mongo-2.mongo.default.svc.cluster.local
+          - name: MONG_REPLSET
+            value: rs0
+          - name: SOLR_HOST
+            value: solr-svc
+---
+kind: Service         
+apiVersion: v1        
+metadata:             
+  name: nhsserver-service 
+spec:                 
+  selector:           
+    app: nhsserver        
+  ports:              
+  - protocol: TCP     
+    targetPort: 8000  
+    port: 88          
+    name: http             
+  type: NodePort  # LoadBalancer not supported with minikube.
+                      # one would need to install an IngressControler to setup a domain name which maps to the pod; see: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-controllers
+

@@ -14,6 +14,9 @@
 # See:
 # https://stackoverflow.com/questions/47973570/kubernetes-log-user-systemserviceaccountdefaultdefault-cannot-get-services
 #
+# To connect to the db:
+# k run mongoshell --rm -it --image mongo -- sh
+# mongo --host rs0/mongo-0.mongo.default.svc.cluster.local:27017,mongo-1.mongo.default.svc.cluster.local:27017,mongo-2.mongo.default.svc.cluster.local:27017
 #
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -47,9 +50,9 @@ spec:
   selector:
     role: mongo
 ---
-#  pupblic  service  for  monogo  statefulset
+#  mongo-pub pupblic service for monogo statefulset
 #
-# This service won't cut it se for a possible solution
+# This service won't cut it see for a possible solution
 # https://github.com/helm/charts/issues/1569
 #
 # kubectl expose pod mongo-0 --type=NodePort
@@ -59,19 +62,19 @@ spec:
 # mongo mongodb://192.168.99.102:31051,192.168.99.102:3042,192.168.99.102:31108/replicaSet=rs0
 
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: mongo-pub
-  labels:
-    name: mongo
-spec:
-  type: NodePort
-  ports:
-  - port: 27017
-    targetPort: 27017
-  selector:
-    role: mongo
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: mongo-pub
+#   labels:
+#     name: mongo
+# spec:
+#   type: NodePort
+#   ports:
+#   - port: 27017
+#     targetPort: 27017
+#   selector:
+#     role: mongo
 
 ---
 # mongo statefulset
@@ -111,6 +114,7 @@ spec:
           volumeMounts:
             - name: mongo-persistent-storage
               mountPath: /data/db
+        # The sidecar checks is there are new k8s replica up or down and add them to the mongo replca set
         - name: mongo-sidecar
           image: cvallance/mongo-k8s-sidecar
           env:

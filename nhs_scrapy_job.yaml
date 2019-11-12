@@ -17,11 +17,31 @@ spec:
           command:
             - 'sh'
             - '-c'
-            - "bin/kafka-topics.sh --create --if-not-exists --zookeeper solr-zookeeper-0.solr-zookeeper-headless:2181,solr-zookeeper-1.solr-zookeeper-headless:2181,solr-zookeeper-2.solr-zookeeper-headless:2181  --replication-factor 1 --partitions 1 --topic scrapypipe"
+            - |
+              exec 2>&1
+              COUNTER=0
+              while [  $COUNTER -lt 20 ]; do
+                brokers=$(echo dump | nc solr-zookeeper-2.solr-zookeeper-headless 2181 | grep brokers)
+                if [ $? -eq 1 ] || [ -z $brokers ]; then
+                  echo "Kafka is NOT running , waiting. $COUNTER attempts...";
+                  COUNTER=`expr $COUNTER + 1`;
+                  sleep 6;
+                else
+                  echo "Kafka is running ";
+                  break;
+                fi                
+              done;
+              if [ $COUNTER -eq 20 ]; then
+                echo "Kafka not running. Giving up .........";
+                exit 1;
+              else
+                echo "Creating THE topic!!!!"
+                bin/kafka-topics.sh --create --if-not-exists --zookeeper solr-zookeeper-0.solr-zookeeper-headless:2181,solr-zookeeper-1.solr-zookeeper-headless:2181,solr-zookeeper-2.solr-zookeeper-headless:2181  --replication-factor 1 --partitions 1 --topic scrapypipe;
+              fi
 
       containers:
       - name: nhs-scrapy
-        image: pjmd-ubuntu.com/scrapy-nhs:v0.0.5
+        image: pjmd-ubuntu.com/scrapy-nhs:v0.0.6
         env:
           - name: KAFKA_HOST
             value: 'kafka-svc'

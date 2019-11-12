@@ -427,17 +427,6 @@ spec:
       restartPolicy: Never
   backoffLimit: 4
 
----
-# mongo fields indexed in solr
----
-apiVersion: "v1"
-kind: "ConfigMap"
-metadata:
-  name: "solr-config-map"
-  labels:
-    app: solr
-    chart: solr-1.0.0
-    release: solr
 
 ---
 # Source: solr/templates/solr-xml-configmap.yaml

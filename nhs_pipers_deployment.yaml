@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
       - name: nhs-mongo-piper-container
-        image: pjmd-ubuntu.com/nhs_piper:v0.0.2
+        image: pjmd-ubuntu.com/nhs_piper:v0.0.4
         env:
           - name: MONGO_HOST
             value: mongo-0.mongo.default.svc.cluster.local:27017,mongo-1.mongo.default.svc.cluster.local:27017,mongo-2.mongo.default.svc.cluster.local:27017
@@ -37,6 +37,10 @@ spec:
             value: solr-svc
           - name: KAFKA_HOST
             value: kafka-svc
+          - name: ATTEMPT_NUM
+            value: "12"
+          - name: DELAY
+            value: "5"
         # Thes args are crazyness, start_piper.sh should get its args from env variables since
         # the python piper read their are from env variables.
         command: ["/app/start_piper.sh"]
@@ -68,7 +72,7 @@ spec:
     spec:
       containers:
       - name: nhs-solr-piper-container
-        image: pjmd-ubuntu.com/nhs_piper:v0.0.2
+        image: pjmd-ubuntu.com/nhs_piper:v0.0.4
         env:
           - name: SOLR_HOST
             value: solr-svc
@@ -76,6 +80,10 @@ spec:
 #            value: 8993
           - name: KAFKA_HOST
             value: kafka-svc
+          - name: ATTEMPT_NUM
+            value: "36"
+          - name: DELAY
+            value: "5"
         command: ["/app/start_piper.sh"]
         args: ["solr", "solr-svc"]
 
